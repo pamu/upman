@@ -1,7 +1,8 @@
-package com.nagarjuna_pamu.dev.uploadmanager;
+package com.nagarjuna_pamu.dev.uploadmanager.ui;
 
 import java.util.Locale;
 
+import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -10,13 +11,18 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
-public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
+import com.nagarjuna_pamu.dev.uploadmanager.R;
+
+public class MainActivity extends ActionBarActivity implements ActionBar.TabListener, LocalFilesFragment.OnFragmentInteractionListener, UploadedFilesFragment.OnFragmentInteractionListener {
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    private Placeholder placeholder = new Placeholder();
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -36,6 +42,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // Set up the action bar.
@@ -125,12 +132,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            return placeholder.newInstance(position + 1);
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
+            // Show 2 total pages.
             return 2;
         }
 
@@ -153,7 +160,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class Placeholder {
+        LocalFilesFragment localFilesFragment;
+        UploadedFilesFragment uploadedFilesFragment;
         /**
          * The fragment argument representing the section number for this
          * fragment.
@@ -164,22 +173,29 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
+        public Fragment newInstance(int sectionNumber) {
+
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
+
+            Fragment fragment = null;
+
+            switch (sectionNumber) {
+                case 1:
+                    localFilesFragment = new LocalFilesFragment();
+                    localFilesFragment.setArguments(args);
+                    fragment = localFilesFragment;
+                    break;
+                case 2:
+                    uploadedFilesFragment = new UploadedFilesFragment();
+                    uploadedFilesFragment.setArguments(args);
+                    fragment = uploadedFilesFragment;
+                    break;
+            }
             return fragment;
         }
 
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
+        public Placeholder() {
         }
     }
 
