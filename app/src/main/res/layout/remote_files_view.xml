@@ -3,21 +3,60 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <android.support.v7.widget.CardView
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/remote_files_card_view"
         android:layout_gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
         card_view:cardCornerRadius="4dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp">
 
-        <TextView
-            android:id="@+id/info_text_remote"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="10dp">
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </android.support.v7.widget.CardView>
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/remote_scrape_id_heading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="6dp"
+                android:textColor="@color/background_floating_material_dark"
+                android:textSize="15dp"
+                android:layout_marginBottom="10dp"/>
+        </LinearLayout>
 
+        <View
+            android:layout_marginBottom="10dp"
+            android:background="@color/background_material_dark"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp" />
+
+
+        <CheckedTextView
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/remote_file_checked_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="scala"
+            android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+            android:checked="false"
+            android:layout_marginBottom="10dp"/>
+    </LinearLayout>
+    </android.support.v7.widget.CardView>
 
 </LinearLayout>

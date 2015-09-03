@@ -6,16 +6,24 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.nagarjuna_pamu.dev.uploadmanager.R;
 import com.nagarjuna_pamu.dev.uploadmanager.adapters.LocalFilesAdapter;
+import com.nagarjuna_pamu.dev.uploadmanager.models.InspectionDetails;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalDataFile;
+import com.nagarjuna_pamu.dev.uploadmanager.models.LocalFilesItem;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalSeperator;
+import com.nagarjuna_pamu.dev.uploadmanager.utils.FileUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -77,16 +85,38 @@ public class LocalFilesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         LocalFilesAdapter localFilesAdapter = new LocalFilesAdapter();
         recyclerView.setAdapter(localFilesAdapter);
-        LocalDataFile localDataFile = new LocalDataFile();
-        localDataFile.setFile(new File("/hello.java"));
-        localDataFile.setScrapeId("lead-11111");
 
-        localFilesAdapter.localFilesItems.add(localDataFile);
+        File[] leads = FileUtils.getLeads();
 
-        LocalSeperator localSeperator = new LocalSeperator();
-        localSeperator.setText("lead-11111");
+        ArrayList<LocalFilesItem> list = new ArrayList<>();
 
-        localFilesAdapter.localFilesItems.add(localSeperator);
+
+        for(File lead : leads) {
+
+            LocalSeperator localSeperator = new LocalSeperator();
+            localSeperator.setText(lead.getName());
+            list.add(localSeperator);
+
+            InspectionDetails inspectionDetails = new InspectionDetails(FileUtils.getInspectorDetails(FileUtils.getJsonFile(lead.getName())));
+            list.add(inspectionDetails);
+
+            File jsonFile = FileUtils.getJsonFile(lead.getName());
+            LocalDataFile localDataFile = new LocalDataFile();
+            localDataFile.setFile(jsonFile);
+            localDataFile.setScrapeId(lead.getName());
+            list.add(localDataFile);
+
+            Log.d("files", lead.getName());
+
+            for(File jpeg : FileUtils.getJpegsFrom(lead)) {
+                LocalDataFile jpegFile = new LocalDataFile();
+                jpegFile.setFile(jpeg);
+                jpegFile.setScrapeId(lead.getName());
+                list.add(jpegFile);
+            }
+        }
+
+        localFilesAdapter.localFilesItems.addAll(list);
 
         localFilesAdapter.notifyDataSetChanged();
 

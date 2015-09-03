@@ -73,8 +73,6 @@ public class UploadedFilesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         UploadedFilesAdapter uploadedFilesAdapter = new UploadedFilesAdapter();
         recyclerView.setAdapter(uploadedFilesAdapter);
-        uploadedFilesAdapter.list.add("java");
-        uploadedFilesAdapter.list.add("scala");
         uploadedFilesAdapter.notifyDataSetChanged();
         return root;
     }

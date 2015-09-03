@@ -8,6 +8,15 @@ import java.io.File;
 public class LocalDataFile implements LocalFilesItem {
     private File file;
     private String scrapeId;
+    private boolean isChecked = false;
+
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setChecked(boolean isChecked) {
+        this.isChecked = isChecked;
+    }
 
     public String getScrapeId() {
         return scrapeId;

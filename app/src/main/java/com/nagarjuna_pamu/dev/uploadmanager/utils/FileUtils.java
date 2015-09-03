@@ -1,12 +1,19 @@
 package com.nagarjuna_pamu.dev.uploadmanager.utils;
 
 import android.os.Environment;
+import android.util.Log;
 
-import org.json.JSONArray;
+import org.apache.commons.io.FilenameUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,10 +22,41 @@ import java.util.List;
  */
 public class FileUtils {
     public final static String INSPECTOR_DIR = "Zoomo-Inspector/";
+    public final static String INSPECTOR_BACKUP_DIR = "Zoomo-Inspector-Backup/";
 
     public static File getInspectorDir() {
         File inspectorDir = new File(Environment.getExternalStorageDirectory(), INSPECTOR_DIR);
+        if (! inspectorDir.exists()) {
+            inspectorDir.mkdirs();
+        }
         return inspectorDir;
+    }
+
+    public static File getBackupDir() {
+        File backupDir = new File(Environment.getExternalStorageDirectory(), INSPECTOR_BACKUP_DIR);
+        if (! backupDir.exists()) {
+            backupDir.mkdirs();
+        }
+        return backupDir;
+    }
+
+    public static File getLeadBackup(final String scrapeId) {
+        File leadDir = new File(getBackupDir().getAbsolutePath() + "/" + scrapeId);
+        if (! leadDir.exists()) {
+            leadDir.mkdirs();
+        }
+        return leadDir;
+    }
+
+    public static void backup(final File file, String scrapeId) {
+        File leadDir = new File(getLeadBackup(scrapeId) + "/" + file.getName());
+        if (leadDir.exists()) {
+            try {
+                org.apache.commons.io.FileUtils.moveFile(file, leadDir);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static File getFileFrom(final File rootDir, final String fileName) {
@@ -48,9 +86,10 @@ public class FileUtils {
     }
 
     public static File[] getJpegsFrom(final File rootDir) {
-        List<File> images = new ArrayList<File>();
+        List<File> images = new ArrayList<>();
         for(File file : getFilesFrom(rootDir)) {
-            if (file.getName().split(".")[1].trim().equals("jpeg")) {
+            Log.d("files", "file " + file.getName());
+            if (FilenameUtils.getExtension(file.getAbsolutePath()).equals("jpeg")) {
                 images.add(file);
             }
         }
@@ -58,18 +97,33 @@ public class FileUtils {
         else return images.toArray(new File[images.size()]);
     }
 
-    public static String getDataPacked(final String scrapeId) {
-        JSONObject jo = new JSONObject();
-        try {
-            jo.put("jsonFile", getJsonFile(scrapeId).getAbsolutePath());
-            JSONArray jarr = new JSONArray();
-            for(File file : getJpegsFrom(getImagesDir(scrapeId))) {
-                jarr.put(file.getAbsolutePath());
+    public static File[] getLeads() {
+        List<File> fileList = new ArrayList<>();
+        File inspectorDir = getInspectorDir();
+        for(File file : inspectorDir.listFiles()) {
+            if (file.isDirectory()) {
+                fileList.add(file);
             }
-            jo.put("images", jarr);
+        }
+        return fileList.toArray(new File[fileList.size()]);
+    }
+
+    public static JSONObject getInspectorDetails(final File jsonFile) {
+        try {
+            FileInputStream fis = new FileInputStream(jsonFile);
+            FileChannel fileChannel = fis.getChannel();
+            MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY,
+                    0, fileChannel.size());
+            String str = Charset.defaultCharset().decode(mappedByteBuffer).toString();
+            JSONObject jsonObject = new JSONObject(str);
+            return jsonObject;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return jo.toString();
+        return null;
     }
 }
