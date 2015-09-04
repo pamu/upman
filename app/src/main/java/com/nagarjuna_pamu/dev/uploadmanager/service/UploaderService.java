@@ -153,7 +153,7 @@ public class UploaderService extends Service {
         Log.d("upload", "in handle action upload file: " + filePath + " scrapeId " +scrapeId);
         try {
 
-            final NotificationManager notificationManager = (NotificationManager) getApplication().getSystemService(NOTIFICATION_SERVICE);
+            //final NotificationManager notificationManager = (NotificationManager) getApplication().getSystemService(NOTIFICATION_SERVICE);
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
 
@@ -174,7 +174,8 @@ public class UploaderService extends Service {
                     int percentage = (int) (((double)total/(double)file.length()) * 100);
                     Log.d("upload", "progress " + percentage);
                     builder.setProgress(100, percentage, false);
-                    notificationManager.notify(r, builder.build());
+                    startForeground(r, builder.build());
+                    //notificationManager.notify(r, builder.build());
                 }
 
                 @Override
@@ -184,7 +185,8 @@ public class UploaderService extends Service {
                     builder.setContentTitle("Upload Finished");
                     builder.setContentText("uploaded " + file.getName());
                     builder.setProgress(0, 0, false);
-                    notificationManager.notify(r, builder.build());
+                    startForeground(r, builder.build());
+                    //notificationManager.notify(r, builder.build());
                     serviceCallBack.onComplete();
                 }
 
@@ -194,7 +196,8 @@ public class UploaderService extends Service {
                     builder.setContentTitle("Upload Failed");
                     builder.setContentText("uploaded failed for file " + file.getName());
                     builder.setProgress(0, 0, false);
-                    notificationManager.notify(r, builder.build());
+                    startForeground(r, builder.build());
+                    //notificationManager.notify(r, builder.build());
                 }
 
                 @Override
