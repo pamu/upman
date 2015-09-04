@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.nagarjuna_pamu.dev.uploadmanager.R;
 import com.nagarjuna_pamu.dev.uploadmanager.adapters.LocalFilesAdapter;
@@ -17,6 +18,7 @@ import com.nagarjuna_pamu.dev.uploadmanager.models.InspectionDetails;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalDataFile;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalFilesItem;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalSeperator;
+import com.nagarjuna_pamu.dev.uploadmanager.service.UploaderService;
 import com.nagarjuna_pamu.dev.uploadmanager.utils.FileUtils;
 
 import org.json.JSONException;
@@ -38,6 +40,8 @@ public class LocalFilesFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+
+    RecyclerView recyclerView;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -81,9 +85,9 @@ public class LocalFilesFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_local_files, container, false);
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.local_files_recycler_view);
+        recyclerView = (RecyclerView) root.findViewById(R.id.local_files_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        LocalFilesAdapter localFilesAdapter = new LocalFilesAdapter();
+        final LocalFilesAdapter localFilesAdapter = new LocalFilesAdapter();
         recyclerView.setAdapter(localFilesAdapter);
 
         File[] leads = FileUtils.getLeads();
@@ -120,7 +124,28 @@ public class LocalFilesFragment extends Fragment {
 
         localFilesAdapter.notifyDataSetChanged();
 
+        Button upload = (Button) root.findViewById(R.id.upload);
+
+        upload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for(LocalFilesItem localFilesItem : localFilesAdapter.localFilesItems) {
+                    if (localFilesItem instanceof LocalDataFile) {
+                        LocalDataFile localDataFile = ((LocalDataFile) localFilesItem);
+                        if (localDataFile.isChecked())
+                            UploaderService.startActionUpload(getActivity(), localDataFile.getFile().getAbsolutePath(), localDataFile.getScrapeId());
+                    }
+                }
+            }
+        });
+
         return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        recyclerView.getAdapter().notifyDataSetChanged();
     }
 
     // TODO: Rename method, update argument and hook method into UI event

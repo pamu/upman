@@ -1,13 +1,19 @@
 package com.nagarjuna_pamu.dev.uploadmanager.service;
 
 import android.app.IntentService;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.amazonaws.mobileconnectors.s3.transfermanager.TransferManager;
 import com.nagarjuna_pamu.dev.uploadmanager.R;
+import com.nagarjuna_pamu.dev.uploadmanager.ui.MainActivity;
 import com.nagarjuna_pamu.dev.uploadmanager.utils.FileUtils;
 import com.nagarjuna_pamu.dev.uploadmanager.utils.S3Uploader;
 
@@ -20,7 +26,7 @@ import java.io.File;
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
-public class UploaderService extends IntentService {
+public class UploaderService extends Service {
     // TODO: Rename actions, choose action names that describe tasks that this
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String ACTION_UPLOAD = "com.nagarjuna_pamu.dev.uploadmanager.service.action.UPLOAD";
@@ -44,13 +50,19 @@ public class UploaderService extends IntentService {
         context.startService(intent);
     }
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
 
-    public UploaderService() {
-        super("UploaderService");
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_UPLOAD.equals(action)) {
@@ -59,6 +71,7 @@ public class UploaderService extends IntentService {
                 handleActionUpload(filePath, scrapeId);
             }
         }
+        return START_REDELIVER_INTENT;
     }
 
     /**
@@ -74,16 +87,27 @@ public class UploaderService extends IntentService {
             return;
         }
 
+        Log.d("upload", "in handle action upload file: " + filePath + " scrapeId " +scrapeId);
         try {
+
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
+
             final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-            builder.setContentTitle(scrapeId + " Upload");
+            builder.setContentTitle("Upload " + scrapeId);
             builder.setContentText("Uploading " + file.getName());
-            builder.setSmallIcon(R.mipmap.ic_launcher);
+            builder.setSmallIcon(R.mipmap.upload);
+            builder.setContentIntent(pendingIntent);
+
 
             S3Uploader.uploadToS3(transferManager, file, new S3Uploader.FileProgressListener() {
+                long total = 0;
                 @Override
                 public void onProgressChanged(long bytesTransferred) {
-                    int percentage = (int) (bytesTransferred/file.length()) * 100;
+                    Log.d("upload", "bytes transfered " + bytesTransferred + "file length " + file.length());
+                    total += bytesTransferred;
+                    int percentage = (int) (((double)total/(double)file.length()) * 100);
+                    Log.d("upload", "progress " + percentage);
                     builder.setProgress(100, percentage, false);
                     startForeground(1, builder.build());
                 }
@@ -91,15 +115,20 @@ public class UploaderService extends IntentService {
                 @Override
                 public void onCompleteUpload() {
                     FileUtils.backup(file, scrapeId);
+                    Log.d("upload", "complete");
+                    builder.setContentTitle("Upload Finished");
+                    builder.setContentText("uploaded " + file.getName());
+                    startForeground(1, builder.build());
                 }
 
                 @Override
                 public void onFailedUpload() {
-
+                    Log.d("upload", "failed");
                 }
 
                 @Override
                 public void onStartUpload() {
+                    Log.d("upload", "upload started");
 
                 }
             });

@@ -49,10 +49,10 @@ public class FileUtils {
     }
 
     public static void backup(final File file, String scrapeId) {
-        File leadDir = new File(getLeadBackup(scrapeId) + "/" + file.getName());
-        if (leadDir.exists()) {
+        File movedFile = new File(getLeadBackup(scrapeId) + "/" + file.getName());
+        if (movedFile.exists()) {
             try {
-                org.apache.commons.io.FileUtils.moveFile(file, leadDir);
+                org.apache.commons.io.FileUtils.moveFile(file, movedFile);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -106,6 +106,27 @@ public class FileUtils {
             }
         }
         return fileList.toArray(new File[fileList.size()]);
+    }
+
+    public static File[] getLeadsFromBackup() {
+        List<File> fileList = new ArrayList<>();
+        File backupDir = getBackupDir();
+        for(File file : backupDir.listFiles()) {
+            if (file.isDirectory()) {
+                fileList.add(file);
+            }
+        }
+        return fileList.toArray(new File[fileList.size()]);
+    }
+
+    public static File[] getUploadedFiles(final File leadDir) {
+        List<File> backedupFiles = new ArrayList<>();
+        for(File file : backedupFiles) {
+            if (file.isFile()) {
+                backedupFiles.add(file);
+            }
+        }
+        return backedupFiles.toArray(new File[backedupFiles.size()]);
     }
 
     public static JSONObject getInspectorDetails(final File jsonFile) {

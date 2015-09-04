@@ -14,6 +14,7 @@ import com.nagarjuna_pamu.dev.uploadmanager.R;
 import com.nagarjuna_pamu.dev.uploadmanager.adapters.UploadedFilesAdapter;
 import com.nagarjuna_pamu.dev.uploadmanager.models.UploadDataFile;
 import com.nagarjuna_pamu.dev.uploadmanager.models.UploadSeperator;
+import com.nagarjuna_pamu.dev.uploadmanager.utils.FileUtils;
 
 import java.io.File;
 
@@ -77,6 +78,8 @@ public class UploadedFilesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         UploadedFilesAdapter uploadedFilesAdapter = new UploadedFilesAdapter();
         recyclerView.setAdapter(uploadedFilesAdapter);
+
+        /**
         UploadSeperator uploadSeperator = new UploadSeperator();
         uploadSeperator.setText("lead-1111");
         uploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
@@ -87,6 +90,21 @@ public class UploadedFilesFragment extends Fragment {
         uploadDataFile.setDeletable(false);
         uploadDataFile.setScrapeId("lead-11111");
         uploadedFilesAdapter.uploadFilesItems.add(uploadDataFile);
+         **/
+
+        for(File file : FileUtils.getLeadsFromBackup()) {
+            UploadSeperator uploadSeperator = new UploadSeperator();
+            uploadSeperator.setText(file.getName());
+            uploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
+
+            for(File f :  FileUtils.getUploadedFiles(file)) {
+                UploadDataFile uploadDataFile = new UploadDataFile();
+                uploadDataFile.setScrapeId(file.getName());
+                uploadDataFile.setFile(f);
+                uploadDataFile.setChecked(false);
+                uploadDataFile.setDeletable(false);
+            }
+        }
 
         uploadedFilesAdapter.notifyDataSetChanged();
         return root;
