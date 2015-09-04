@@ -50,6 +50,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
     };
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(serviceConnection);
+    }
+
     /**
      * The {@link ViewPager} that will host the section contents.
      */
