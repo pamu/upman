@@ -114,6 +114,7 @@ public class LocalFilesFragment extends Fragment {
     }
 
     public void load() {
+        mLocalFilesAdapter.localFilesItems.clear();
 
         File[] leads = FileUtils.getLeads();
         ArrayList<LocalFilesItem> list = new ArrayList<>();
@@ -144,8 +145,6 @@ public class LocalFilesFragment extends Fragment {
                 list.add(jpegFile);
             }
         }
-
-        mLocalFilesAdapter.localFilesItems.clear();
         mLocalFilesAdapter.localFilesItems.addAll(list);
 
         mLocalFilesAdapter.notifyDataSetChanged();

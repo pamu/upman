@@ -2,6 +2,7 @@ package com.nagarjuna_pamu.dev.uploadmanager.service;
 
 import android.app.Activity;
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
@@ -9,7 +10,11 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.ServiceConnection;
 import android.os.Binder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -21,7 +26,6 @@ import com.nagarjuna_pamu.dev.uploadmanager.utils.FileUtils;
 import com.nagarjuna_pamu.dev.uploadmanager.utils.S3Uploader;
 
 import java.io.File;
-import java.util.Random;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -42,6 +46,21 @@ public class UploaderService extends Service {
     private ServiceCallBack serviceCallBack;
     int counter = 0;
 
+    private volatile Looper mServiceLooper;
+    private volatile ServiceHandler mServiceHandler;
+    private String name;
+
+    private final class ServiceHandler extends Handler {
+        public ServiceHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            onHandleIntent((Intent)msg.obj);
+        }
+    }
+
     /**
      * Starts this service to perform action Foo with the given parameters. If
      * the service is already performing a task this action will be queued.
@@ -57,9 +76,18 @@ public class UploaderService extends Service {
         context.startService(intent);
     }
 
+    public UploaderService() {
+
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        HandlerThread thread = new HandlerThread("Service[" + name + "]");
+        thread.start();
+
+        mServiceLooper = thread.getLooper();
+        mServiceHandler = new ServiceHandler(mServiceLooper);
     }
 
     @Nullable
@@ -73,12 +101,32 @@ public class UploaderService extends Service {
             return UploaderService.this;
         }
     }
+
     public void register(MainActivity mainActivity) {
         serviceCallBack = mainActivity;
     }
 
     @Override
+    public void onStart(Intent intent, int startId) {
+        Message msg = mServiceHandler.obtainMessage();
+        msg.arg1 = startId;
+        msg.obj = intent;
+        mServiceHandler.sendMessage(msg);
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        onStart(intent, startId);
+        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mServiceLooper.quit();
+    }
+
+    protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_UPLOAD.equals(action)) {
@@ -87,7 +135,6 @@ public class UploaderService extends Service {
                 handleActionUpload(filePath, scrapeId);
             }
         }
-        return START_REDELIVER_INTENT;
     }
 
     /**
@@ -106,13 +153,14 @@ public class UploaderService extends Service {
         Log.d("upload", "in handle action upload file: " + filePath + " scrapeId " +scrapeId);
         try {
 
+            final NotificationManager notificationManager = (NotificationManager) getApplication().getSystemService(NOTIFICATION_SERVICE);
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
 
             final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
             builder.setContentTitle("Upload " + scrapeId);
             builder.setContentText("Uploading " + file.getName());
-            builder.setSmallIcon(R.mipmap.upload);
+            builder.setSmallIcon(R.drawable.ic_upload);
             builder.setContentIntent(pendingIntent);
 
             final int r = counter + 1;
@@ -126,7 +174,7 @@ public class UploaderService extends Service {
                     int percentage = (int) (((double)total/(double)file.length()) * 100);
                     Log.d("upload", "progress " + percentage);
                     builder.setProgress(100, percentage, false);
-                    startForeground(r, builder.build());
+                    notificationManager.notify(counter, builder.build());
                 }
 
                 @Override
@@ -135,8 +183,8 @@ public class UploaderService extends Service {
                     Log.d("upload", "complete");
                     builder.setContentTitle("Upload Finished");
                     builder.setContentText("uploaded " + file.getName());
-                    builder.setDefaults(0);
-                    startForeground(r, builder.build());
+                    builder.setProgress(0, 0, false);
+                    notificationManager.notify(counter, builder.build());
                     serviceCallBack.onComplete();
                 }
 
@@ -145,13 +193,13 @@ public class UploaderService extends Service {
                     Log.d("upload", "failed");
                     builder.setContentTitle("Upload Failed");
                     builder.setContentText("uploaded failed for file " + file.getName());
-                    startForeground(r, builder.build());
+                    builder.setProgress(0, 0, false);
+                    notificationManager.notify(counter, builder.build());
                 }
 
                 @Override
                 public void onStartUpload() {
                     Log.d("upload", "upload started");
-
                 }
             });
         } catch (InterruptedException e) {
