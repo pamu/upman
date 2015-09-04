@@ -50,7 +50,7 @@ public class FileUtils {
 
     public static void backup(final File file, String scrapeId) {
         File movedFile = new File(getLeadBackup(scrapeId) + "/" + file.getName());
-        if (movedFile.exists()) {
+        if (! movedFile.exists()) {
             try {
                 org.apache.commons.io.FileUtils.moveFile(file, movedFile);
             } catch (IOException e) {
@@ -64,8 +64,18 @@ public class FileUtils {
         return file;
     }
 
-    public static File getJsonFile(final String scrapeId) {
-        return getFileFrom(getInspectorDir(), scrapeId.trim() + ".json");
+    public static File[] getJsonFile(final String scrapeId) {
+        List<File> fileList = new ArrayList<>();
+        for(File file : getInspectorDir().listFiles()) {
+            if (file.isFile()) {
+                if (FilenameUtils.getExtension(file.getAbsolutePath()).equals("json")){
+                    if (file.equals(scrapeId + ".json")) {
+                        fileList.add(file);
+                    }
+                }
+            }
+        }
+        return fileList.toArray(new File[fileList.size()]);
     }
 
     public static File getImagesDir(final String scrapeId) {
@@ -75,7 +85,7 @@ public class FileUtils {
     public static File[] getFilesFrom(final File rootDir) {
         if (! rootDir.exists()) return new File[0];
         File[] files = rootDir.listFiles();
-        List<File> fileList = new ArrayList<File>();
+        List<File> fileList = new ArrayList<>();
         for(File file: files) {
             if (file.isFile()) {
                 fileList.add(file);
@@ -121,7 +131,7 @@ public class FileUtils {
 
     public static File[] getUploadedFiles(final File leadDir) {
         List<File> backedupFiles = new ArrayList<>();
-        for(File file : backedupFiles) {
+        for(File file : leadDir.listFiles()) {
             if (file.isFile()) {
                 backedupFiles.add(file);
             }
@@ -144,6 +154,8 @@ public class FileUtils {
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
         return null;
     }

@@ -1,6 +1,7 @@
 package com.nagarjuna_pamu.dev.uploadmanager.ui;
 
 import android.app.Activity;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -30,7 +31,7 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link LocalFilesFragment.OnFragmentInteractionListener} interface
+ * {@link LocalFilesFragment.LocalFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link LocalFilesFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -42,12 +43,13 @@ public class LocalFilesFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
 
     RecyclerView recyclerView;
+    LocalFilesAdapter mLocalFilesAdapter;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private LocalFragmentInteractionListener mListener;
 
     /**
      * Use this factory method to create a new instance of
@@ -87,49 +89,18 @@ public class LocalFilesFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_local_files, container, false);
         recyclerView = (RecyclerView) root.findViewById(R.id.local_files_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        final LocalFilesAdapter localFilesAdapter = new LocalFilesAdapter();
+        mLocalFilesAdapter = new LocalFilesAdapter();
+        final LocalFilesAdapter localFilesAdapter = mLocalFilesAdapter;
         recyclerView.setAdapter(localFilesAdapter);
 
-        File[] leads = FileUtils.getLeads();
-
-        ArrayList<LocalFilesItem> list = new ArrayList<>();
-
-
-        for(File lead : leads) {
-
-            LocalSeperator localSeperator = new LocalSeperator();
-            localSeperator.setText(lead.getName());
-            list.add(localSeperator);
-
-            InspectionDetails inspectionDetails = new InspectionDetails(FileUtils.getInspectorDetails(FileUtils.getJsonFile(lead.getName())));
-            list.add(inspectionDetails);
-
-            File jsonFile = FileUtils.getJsonFile(lead.getName());
-            LocalDataFile localDataFile = new LocalDataFile();
-            localDataFile.setFile(jsonFile);
-            localDataFile.setScrapeId(lead.getName());
-            list.add(localDataFile);
-
-            Log.d("files", lead.getName());
-
-            for(File jpeg : FileUtils.getJpegsFrom(lead)) {
-                LocalDataFile jpegFile = new LocalDataFile();
-                jpegFile.setFile(jpeg);
-                jpegFile.setScrapeId(lead.getName());
-                list.add(jpegFile);
-            }
-        }
-
-        localFilesAdapter.localFilesItems.addAll(list);
-
-        localFilesAdapter.notifyDataSetChanged();
+        load();
 
         Button upload = (Button) root.findViewById(R.id.upload);
 
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                for(LocalFilesItem localFilesItem : localFilesAdapter.localFilesItems) {
+                for(LocalFilesItem localFilesItem : ((LocalFilesAdapter)recyclerView.getAdapter()).localFilesItems) {
                     if (localFilesItem instanceof LocalDataFile) {
                         LocalDataFile localDataFile = ((LocalDataFile) localFilesItem);
                         if (localDataFile.isChecked())
@@ -142,16 +113,53 @@ public class LocalFilesFragment extends Fragment {
         return root;
     }
 
+    public void load() {
+
+        File[] leads = FileUtils.getLeads();
+        ArrayList<LocalFilesItem> list = new ArrayList<>();
+        for(File lead : leads) {
+
+            LocalSeperator localSeperator = new LocalSeperator();
+            localSeperator.setText(lead.getName());
+            list.add(localSeperator);
+
+            if (FileUtils.getJsonFile(lead.getName()).length == 1) {
+                InspectionDetails inspectionDetails = new InspectionDetails(FileUtils.getInspectorDetails(FileUtils.getJsonFile(lead.getName())[0]));
+                list.add(inspectionDetails);
+            }
+
+            for(File json : FileUtils.getJsonFile(lead.getName())) {
+                LocalDataFile localDataFile = new LocalDataFile();
+                localDataFile.setFile(json);
+                localDataFile.setScrapeId(lead.getName());
+                list.add(localDataFile);
+            }
+
+            Log.d("files", lead.getName());
+
+            for(File jpeg : FileUtils.getJpegsFrom(lead)) {
+                LocalDataFile jpegFile = new LocalDataFile();
+                jpegFile.setFile(jpeg);
+                jpegFile.setScrapeId(lead.getName());
+                list.add(jpegFile);
+            }
+        }
+
+        mLocalFilesAdapter.localFilesItems.clear();
+        mLocalFilesAdapter.localFilesItems.addAll(list);
+
+        mLocalFilesAdapter.notifyDataSetChanged();
+    }
     @Override
     public void onResume() {
         super.onResume();
-        recyclerView.getAdapter().notifyDataSetChanged();
+        load();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onLocalFragmentInteraction(uri);
         }
     }
 
@@ -159,7 +167,7 @@ public class LocalFilesFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (LocalFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -182,9 +190,9 @@ public class LocalFilesFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
+    public interface LocalFragmentInteractionListener {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        public void onLocalFragmentInteraction(Uri uri);
     }
 
 }

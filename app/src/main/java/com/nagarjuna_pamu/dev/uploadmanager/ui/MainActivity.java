@@ -2,8 +2,11 @@ package com.nagarjuna_pamu.dev.uploadmanager.ui;
 
 import java.util.Locale;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.IBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -12,16 +15,14 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.nagarjuna_pamu.dev.uploadmanager.R;
+import com.nagarjuna_pamu.dev.uploadmanager.service.UploaderService;
 
-public class MainActivity extends ActionBarActivity implements ActionBar.TabListener, LocalFilesFragment.OnFragmentInteractionListener, UploadedFilesFragment.OnFragmentInteractionListener {
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
-    }
+public class MainActivity extends ActionBarActivity implements ActionBar.TabListener, LocalFilesFragment.LocalFragmentInteractionListener, UploadedFilesFragment.UploadFragmentInteractionListener, UploaderService.ServiceCallBack {
 
     private Placeholder placeholder = new Placeholder();
 
@@ -35,6 +36,20 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
 
+    ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            UploaderService.LocalBinder localBinder = (UploaderService.LocalBinder) iBinder;
+            UploaderService uploaderService = localBinder.getServiceInstance();
+            uploaderService.register(MainActivity.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+        }
+    };
+
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -45,6 +60,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        bindService(new Intent(getApplicationContext(), UploaderService.class), serviceConnection, 0);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -81,6 +98,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
     }
 
+    public void update() {
+        placeholder.update();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -119,6 +139,27 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    @Override
+    public void onLocalFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void onComplete() {
+        Log.d("update", "update called");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                update();
+            }
+        });
+    }
+
+    @Override
+    public void onUploadFragmentInteraction(Uri uri) {
+
     }
 
     /**
@@ -196,6 +237,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     break;
             }
             return fragment;
+        }
+
+        public void update() {
+            localFilesFragment.load();
+            uploadedFilesFragment.load();
         }
 
         public Placeholder() {

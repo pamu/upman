@@ -74,6 +74,8 @@ public class InspectionDetails implements LocalFilesItem {
             sellerPhone= jsonObject.getString("seller_phone");
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }

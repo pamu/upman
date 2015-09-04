@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link UploadedFilesFragment.OnFragmentInteractionListener} interface
+ * {@link UploadedFilesFragment.UploadFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link UploadedFilesFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -36,7 +36,10 @@ public class UploadedFilesFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private UploadFragmentInteractionListener mListener;
+
+    RecyclerView recyclerView;
+    UploadedFilesAdapter mUploadedFilesAdapter;
 
     /**
      * Use this factory method to create a new instance of
@@ -74,28 +77,35 @@ public class UploadedFilesFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_uploaded_files, container, false);
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.uploaded_files_recycler_view);
+        recyclerView = (RecyclerView) root.findViewById(R.id.uploaded_files_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        UploadedFilesAdapter uploadedFilesAdapter = new UploadedFilesAdapter();
+        mUploadedFilesAdapter = new UploadedFilesAdapter();
+        final UploadedFilesAdapter uploadedFilesAdapter = mUploadedFilesAdapter;
         recyclerView.setAdapter(uploadedFilesAdapter);
+        load();
+        return root;
+    }
+
+    public void load() {
 
         /**
-        UploadSeperator uploadSeperator = new UploadSeperator();
-        uploadSeperator.setText("lead-1111");
-        uploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
+         UploadSeperator uploadSeperator = new UploadSeperator();
+         uploadSeperator.setText("lead-1111");
+         uploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
 
-        UploadDataFile uploadDataFile = new UploadDataFile();
-        uploadDataFile.setFile(new File("/Future.scala"));
-        uploadDataFile.setChecked(true);
-        uploadDataFile.setDeletable(false);
-        uploadDataFile.setScrapeId("lead-11111");
-        uploadedFilesAdapter.uploadFilesItems.add(uploadDataFile);
+         UploadDataFile uploadDataFile = new UploadDataFile();
+         uploadDataFile.setFile(new File("/Future.scala"));
+         uploadDataFile.setChecked(true);
+         uploadDataFile.setDeletable(false);
+         uploadDataFile.setScrapeId("lead-11111");
+         uploadedFilesAdapter.uploadFilesItems.add(uploadDataFile);
          **/
+        mUploadedFilesAdapter.uploadFilesItems.clear();
 
         for(File file : FileUtils.getLeadsFromBackup()) {
             UploadSeperator uploadSeperator = new UploadSeperator();
             uploadSeperator.setText(file.getName());
-            uploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
+            mUploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
 
             for(File f :  FileUtils.getUploadedFiles(file)) {
                 UploadDataFile uploadDataFile = new UploadDataFile();
@@ -103,25 +113,31 @@ public class UploadedFilesFragment extends Fragment {
                 uploadDataFile.setFile(f);
                 uploadDataFile.setChecked(false);
                 uploadDataFile.setDeletable(false);
+                mUploadedFilesAdapter.uploadFilesItems.add(uploadDataFile);
             }
         }
 
-        uploadedFilesAdapter.notifyDataSetChanged();
-        return root;
+        mUploadedFilesAdapter.notifyDataSetChanged();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onUploadFragmentInteraction(uri);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        load();
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (UploadFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -144,9 +160,9 @@ public class UploadedFilesFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
+    public interface UploadFragmentInteractionListener {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        public void onUploadFragmentInteraction(Uri uri);
     }
 
 }
