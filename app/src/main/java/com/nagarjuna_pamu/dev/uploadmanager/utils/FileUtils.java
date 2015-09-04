@@ -68,8 +68,9 @@ public class FileUtils {
         List<File> fileList = new ArrayList<>();
         for(File file : getInspectorDir().listFiles()) {
             if (file.isFile()) {
+                Log.d("json file", file.getName());
                 if (FilenameUtils.getExtension(file.getAbsolutePath()).equals("json")){
-                    if (file.equals(scrapeId + ".json")) {
+                    if (file.getName().equals(scrapeId + ".json")) {
                         fileList.add(file);
                     }
                 }

@@ -40,6 +40,7 @@ public class UploaderService extends Service {
     private static final String SCRAPE_ID = "com.nagarjuna_pamu.dev.uploadmanager.service.extra.SCRAPE_ID";
 
     private ServiceCallBack serviceCallBack;
+    int counter = 0;
 
     /**
      * Starts this service to perform action Foo with the given parameters. If
@@ -105,8 +106,6 @@ public class UploaderService extends Service {
         Log.d("upload", "in handle action upload file: " + filePath + " scrapeId " +scrapeId);
         try {
 
-            final Random random = new Random();
-
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
 
@@ -116,7 +115,7 @@ public class UploaderService extends Service {
             builder.setSmallIcon(R.mipmap.upload);
             builder.setContentIntent(pendingIntent);
 
-            final int r = random.nextInt();
+            final int r = counter + 1;
 
             S3Uploader.uploadToS3(transferManager, file, new S3Uploader.FileProgressListener() {
                 long total = 0;
