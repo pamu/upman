@@ -2,6 +2,7 @@ package com.nagarjuna_pamu.dev.uploadmanager.ui;
 
 import java.util.Locale;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -97,6 +98,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(getApplicationContext(), UploadManagerPreferences.class);
+            startActivity(intent);
             return true;
         }
 

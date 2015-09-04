@@ -20,6 +20,9 @@ public class S3Uploader {
 
     public static interface FileProgressListener {
         public void onProgressChanged(long bytesTransferred);
+        public void onCompleteUpload();
+        public void onFailedUpload();
+        public void onStartUpload();
     }
 
     public static void uploadToS3(TransferManager transferManager, final File file) throws InterruptedException {
@@ -43,8 +46,15 @@ public class S3Uploader {
         upload.addProgressListener(new ProgressListener() {
             @Override
             public void progressChanged(ProgressEvent progressEvent) {
+                fileProgressListener.onProgressChanged(progressEvent.getBytesTransferred());
                 if (progressEvent.getEventCode() == ProgressEvent.COMPLETED_EVENT_CODE) {
-                    fileProgressListener.onProgressChanged(progressEvent.getBytesTransferred());
+                    fileProgressListener.onCompleteUpload();
+                }
+                if (progressEvent.getEventCode() == com.amazonaws.event.ProgressEvent.STARTED_EVENT_CODE) {
+                    fileProgressListener.onStartUpload();
+                }
+                if (progressEvent.getEventCode() == com.amazonaws.event.ProgressEvent.FAILED_EVENT_CODE) {
+                    fileProgressListener.onFailedUpload();
                 }
             }
         });

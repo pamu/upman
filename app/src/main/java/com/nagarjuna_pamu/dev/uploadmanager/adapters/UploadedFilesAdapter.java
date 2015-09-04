@@ -48,6 +48,7 @@ public class UploadedFilesAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         public void bindView(final int position, final List<UploadFilesItem> uploadFilesItems, final UploadDataFile uploadDataFile) {
             heading.setText(uploadDataFile.getScrapeId());
+            checkedTextView.setText(uploadDataFile.getFile().getName());
             checkedTextView.setEnabled(((UploadDataFile) uploadFilesItems.get(position)).isDeletable());
             checkedTextView.setChecked(((UploadDataFile) uploadFilesItems.get(position)).isChecked());
             checkedTextView.setOnClickListener(new View.OnClickListener() {

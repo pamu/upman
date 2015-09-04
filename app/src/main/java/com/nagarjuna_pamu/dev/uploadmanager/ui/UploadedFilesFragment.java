@@ -12,6 +12,10 @@ import android.view.ViewGroup;
 
 import com.nagarjuna_pamu.dev.uploadmanager.R;
 import com.nagarjuna_pamu.dev.uploadmanager.adapters.UploadedFilesAdapter;
+import com.nagarjuna_pamu.dev.uploadmanager.models.UploadDataFile;
+import com.nagarjuna_pamu.dev.uploadmanager.models.UploadSeperator;
+
+import java.io.File;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -73,6 +77,17 @@ public class UploadedFilesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         UploadedFilesAdapter uploadedFilesAdapter = new UploadedFilesAdapter();
         recyclerView.setAdapter(uploadedFilesAdapter);
+        UploadSeperator uploadSeperator = new UploadSeperator();
+        uploadSeperator.setText("lead-1111");
+        uploadedFilesAdapter.uploadFilesItems.add(uploadSeperator);
+
+        UploadDataFile uploadDataFile = new UploadDataFile();
+        uploadDataFile.setFile(new File("/Future.scala"));
+        uploadDataFile.setChecked(true);
+        uploadDataFile.setDeletable(false);
+        uploadDataFile.setScrapeId("lead-11111");
+        uploadedFilesAdapter.uploadFilesItems.add(uploadDataFile);
+
         uploadedFilesAdapter.notifyDataSetChanged();
         return root;
     }

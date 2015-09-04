@@ -19,6 +19,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.UploadManagerPreferences"
+            android:label="Settings" />
+
+        <service
+            android:name=".service.UploaderService"
+            android:exported="false" >
+        </service>
     </application>
 
 </manifest>
