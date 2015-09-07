@@ -29,4 +29,5 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-s3:2.+'
     compile 'com.amazonaws:aws-android-sdk-ddb:2.+'
     compile 'commons-io:commons-io:2.4'
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }

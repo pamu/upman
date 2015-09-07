@@ -1,16 +1,21 @@
 package com.nagarjuna_pamu.dev.uploadmanager.adapters;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckedTextView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nagarjuna_pamu.dev.uploadmanager.R;
 import com.nagarjuna_pamu.dev.uploadmanager.models.UploadDataFile;
 import com.nagarjuna_pamu.dev.uploadmanager.models.UploadFilesItem;
 import com.nagarjuna_pamu.dev.uploadmanager.models.UploadSeperator;
+import com.squareup.picasso.Picasso;
+
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,16 +43,26 @@ public class UploadedFilesAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     public static class UploadDataFileViewHolder extends RecyclerView.ViewHolder {
         private TextView heading;
+        private ImageView preview;
         private CheckedTextView checkedTextView;
+        private Context context;
 
         public UploadDataFileViewHolder(View itemView) {
             super(itemView);
             heading = (TextView) itemView.findViewById(R.id.remote_scrape_id_heading);
             checkedTextView = (CheckedTextView) itemView.findViewById(R.id.remote_file_checked_text_view);
+            preview = (ImageView) itemView.findViewById(R.id.remote_image_preview);
+            context = itemView.getContext();
         }
 
         public void bindView(final int position, final List<UploadFilesItem> uploadFilesItems, final UploadDataFile uploadDataFile) {
             heading.setText(uploadDataFile.getScrapeId());
+            UploadDataFile dataFile = ((UploadDataFile) uploadFilesItems.get(position));
+            if (FilenameUtils.getExtension(dataFile.getFile().getAbsolutePath()).equals("jpeg")) {
+                Picasso.with(context).load(dataFile.getFile()).into(preview);
+            } else {
+                preview.setImageResource(R.drawable.ic_upload);
+            }
             checkedTextView.setText(uploadDataFile.getFile().getName());
             checkedTextView.setEnabled(((UploadDataFile) uploadFilesItems.get(position)).isDeletable());
             checkedTextView.setChecked(((UploadDataFile) uploadFilesItems.get(position)).isChecked());

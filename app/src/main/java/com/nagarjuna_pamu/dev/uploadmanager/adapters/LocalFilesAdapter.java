@@ -1,10 +1,12 @@
 package com.nagarjuna_pamu.dev.uploadmanager.adapters;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckedTextView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -13,7 +15,11 @@ import com.nagarjuna_pamu.dev.uploadmanager.models.InspectionDetails;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalDataFile;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalFilesItem;
 import com.nagarjuna_pamu.dev.uploadmanager.models.LocalSeperator;
+import com.squareup.picasso.Picasso;
 
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,17 +52,27 @@ public class LocalFilesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         private TextView heading;
         private CheckedTextView checkedTextView;
         private ProgressBar progressBar;
+        private ImageView preview;
+        private Context context;
 
         public LocalDataFileViewHolder(View itemView) {
             super(itemView);
             heading = (TextView) itemView.findViewById(R.id.local_scrape_id_heading);
             checkedTextView = (CheckedTextView) itemView.findViewById(R.id.local_file_checked_text_view);
+            preview = (ImageView) itemView.findViewById(R.id.local_image_preview);
             progressBar = (ProgressBar) itemView.findViewById(R.id.file_upload_progress);
+            context = itemView.getContext();
             progressBar.setVisibility(View.GONE);
         }
 
         public void bindView(final int position, final List<LocalFilesItem> localDataFileList, LocalDataFile localDataFile) {
             heading.setText(localDataFile.getScrapeId());
+            LocalDataFile dataFile = ((LocalDataFile) localDataFileList.get(position));
+            if (FilenameUtils.getExtension(dataFile.getFile().getAbsolutePath()).equals("jpeg")) {
+                Picasso.with(context).load(dataFile.getFile()).placeholder(R.drawable.ic_upload).error(R.drawable.ic_upload).into(preview);
+            } else {
+                preview.setImageResource(R.drawable.ic_upload);
+            }
             checkedTextView.setText(localDataFile.getFile().getName());
             checkedTextView.setChecked(((LocalDataFile) localDataFileList.get(position)).isChecked());
             checkedTextView.setOnClickListener(new View.OnClickListener() {
